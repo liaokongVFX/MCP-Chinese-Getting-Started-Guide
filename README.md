@@ -552,7 +552,7 @@ from mcp.server import FastMCP
 app = FastMCP('prompt_and_resources')
 
 @app.prompt('翻译专家')
-def translate_expert(
+async def translate_expert(
         target_language: str = 'Chinese',
 ) -> str:
     return f'你是一个翻译专家，擅长将任何语言翻译成{target_language}。请翻译以下内容：'
@@ -581,12 +581,12 @@ from mcp.server import FastMCP
 app = FastMCP('prompt_and_resources')
 
 @app.resource('echo://static')
-def echo_resource():
+async def echo_resource():
     # 返回的是，当用户使用这个资源时，资源的内容
     return 'Echo!'
 
 @app.resource('greeting://{name}')
-def get_greeting(name):
+async def get_greeting(name):
     return f'Hello, {name}!'
 
 
