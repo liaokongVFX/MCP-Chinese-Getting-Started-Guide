@@ -4,7 +4,7 @@
 
 模型上下文协议（MCP）是一个创新的开源协议，它重新定义了大语言模型（LLM）与外部世界的互动方式。MCP 提供了一种标准化方法，使任意大语音模型能够轻松连接各种数据源和工具，实现信息的无缝访问和处理。MCP 就像是 AI 应用程序的 USB-C 接口，为 AI 模型提供了一种标准化的方式来连接不同的数据源和工具。
 
-![image-20250223214308430](.assets\image-20250223214308430.png)
+![image-20250223214308430](.assets/image-20250223214308430.png)
 
 MCP 有以下几个核心功能：
 
@@ -140,11 +140,11 @@ mcp dev web_search.py
 
 当出现如下提示则代表运行成功。
 
-![image-20250223223638135](.assets\image-20250223223638135.png)
+![image-20250223223638135](.assets/image-20250223223638135.png)
 
 然后，我们打开这个地址，点击左侧的 `Connect` 按钮，即可连接我们刚写的服务。然后我们切换到 `Tools` 栏中，点击 `List Tools` 按钮即可看到我们刚写的工具，我们就可以开始进行调试啦。
 
-![image-20250223224052795](.assets\image-20250223224052795.png)
+![image-20250223224052795](.assets/image-20250223224052795.png)
 
 ## 开发 MCP 服务端
 
@@ -498,11 +498,11 @@ if __name__ == '__main__':
 
 首先，我们先打开配置。
 
-![image-20250227221154638](.assets\image-20250227221154638.png)
+![image-20250227221154638](.assets/image-20250227221154638.png)
 
 我们点击 `Developer` 菜单，然后点击 `Edit Config` 按钮打开 Claude 桌面端的配置文件 `claude_desktop_config.json`
 
-![image-20250227221302174](.assets\image-20250227221302174.png)
+![image-20250227221302174](.assets/image-20250227221302174.png)
 
 然后开始添加我们的服务器，服务器需要在 `mcpServers` 层级下，参数有 `command`、`args`、`env`。实际上，参数和 `StdioServerParameters` 对象初始化时候的参数是一样的。 
 
@@ -524,9 +524,9 @@ if __name__ == '__main__':
 
 最后，我们保存文件后重启 Claude 桌面端就可以在这里看到我们的插件了。
 
-![image-20250227221911231](.assets\image-20250227221911231.png)
+![image-20250227221911231](.assets/image-20250227221911231.png)
 
-![image-20250227221921036](.assets\image-20250227221921036.png)
+![image-20250227221921036](.assets/image-20250227221921036.png)
 
 当然，我们也可以直接在我们插件的目录下运行以下命令来直接安装：
 
@@ -563,7 +563,7 @@ if __name__ == '__main__':
 
 他会让我们设置一下我们传入的参数，然后他会在我们的聊天窗口上生成一个附件。
 
-![mcp001](.assets\mcp001-1740666812436-2.gif)
+![mcp001](.assets/mcp001-1740666812436-2.gif)
 
 
 
@@ -593,7 +593,7 @@ if __name__ == '__main__':
 
 然后，我们到 Claude 桌面端上看看。
 
-![mcp002](.assets\mcp002.gif)
+![mcp002](.assets/mcp002.gif)
 
 这里要特别注意的是，目前 Claude 桌面端是没法读到资源装饰器设置 `greeting://{name}` 这种通配符的路径，未来将会被支持。但是，在我们的客户端代码中是可以当做资源模板来使用的，具体代码如下：
 
@@ -740,15 +740,15 @@ if __name__ == '__main__':
 mcp dev image_server.py
 ```
 
-![image-20250301231332749](.assets\image-20250301231332749.png)
+![image-20250301231332749](.assets/image-20250301231332749.png)
 
 接着我们在 VsCode 中安装 cline 插件，当安装完插件后，我们配置一下我们的 deepseek 的 api key。接着，我们点击右上角的 `MCP Server` 按钮打开 mcp server 列表。
 
-![image-20250301232248034](.assets\image-20250301232248034.png)
+![image-20250301232248034](.assets/image-20250301232248034.png)
 
 然后切换到 `Installed` Tab 点击 `Configure MCP Servers` 按钮来编辑自定义的 mcp 服务器。
 
-![image-20250301232417966](.assets\image-20250301232417966.png)
+![image-20250301232417966](.assets/image-20250301232417966.png)
 
 配置如下：
 
@@ -773,19 +773,19 @@ mcp dev image_server.py
 
 我们保存后，这里的这个小点是绿色的就表示我们的服务器已连接，然后我们就可以开始使用啦。
 
-![image-20250301232809433](.assets\image-20250301232809433.png)
+![image-20250301232809433](.assets/image-20250301232809433.png)
 
 然后，我们就打开输入框，来输入我们的要写的文章的内容：
 
-![image-20250301233421292](.assets\image-20250301233421292.png)
+![image-20250301233421292](.assets/image-20250301233421292.png)
 
 我们可以看到，他正确的调用了我们的工具
 
-![image-20250301233726301](.assets\image-20250301233726301.png)
+![image-20250301233726301](.assets/image-20250301233726301.png)
 
 最后，就是可以看到生成的文章啦。
 
-![image-20250301234532249](.assets\image-20250301234532249.png)
+![image-20250301234532249](.assets/image-20250301234532249.png)
 
 至此，整个 MCP 入门教程就到这里啦。相关代码会放到 github 仓库中：https://github.com/liaokongVFX/MCP-Chinese-Getting-Started-Guide
 
