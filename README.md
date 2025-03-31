@@ -688,7 +688,7 @@ async with stdio_client(server_params) as (read, write):
 
 最后，我们来使用 VsCode 的 cline 插件，来通过 DeepSeek 和我们自定义的一个图片生成的 mcp 服务器来构建一个图文大师的应用。废话不多说，我们直接开始。
 
-首先先来构建我们的图片生成的 mcp server，这里我们直接用 huggingface 上的 `FLUX.1-schnell` 模型，地址是：https://huggingface.co/spaces/black-forest-labs/FLUX.1-schnell。这里我们不使用 `gradio_client` 库，而是会使用 `httpx` 手搓一个，因为使用 `gradio_client` 库可能会出现编码错误的bug。具体代码如下：
+首先先来构建我们的图片生成的 mcp server，这里我们直接用 huggingface 上的 `FLUX.1-schnell` 模型，地址是：https://huggingface.co/spaces/black-forest-labs/FLUX.1-schnell 。这里我们不使用 `gradio_client` 库，而是会使用 `httpx` 手搓一个，因为使用 `gradio_client` 库可能会出现编码错误的bug。具体代码如下：
 
 ```python
 # image_server.py
