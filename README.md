@@ -2,7 +2,7 @@
 
 
 
-[TOC]
+[TOC]depts
 
 ## 简介
 
@@ -105,7 +105,7 @@ async def web_search(query: str) -> str:
 
 ```python
 if __name__ == "__main__":
-    mcp.run(transport='stdio')
+    app.run(transport='stdio')
 ```
 
 ## 调试 MCP 服务器
