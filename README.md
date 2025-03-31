@@ -363,6 +363,7 @@ if __name__ == "__main__":
 ```
 
 这是一个最精简的代码，里面没有实现记录上下文消息等功能，只是为了用最简单的代码来了解如何通过大语言模型来调动 CMP 服务器。这里只演示了如何连接单服务器，如果你期望连接多个 MCP 服务器，无非就是循环一下 `connect_to_server` 中的代码，可以将他们封装成一个类，然后将所有的 MCP 服务器中的工具循环遍历生成一个大的 `available_tools`，然后在通过大语言模型的返回结果进行调用即可，这里就不再赘述了。
+> 可以参考官方案例：https://github.com/modelcontextprotocol/python-sdk/blob/main/examples/clients/simple-chatbot/mcp_simple_chatbot/main.py
 
 ## Sampling 讲解
 
