@@ -150,9 +150,9 @@ mcp dev web_search.py
 
 ![image-20250223224052795](.assets/image-20250223224052795.png)
 
-## 开发 MCP 服务端
+## 开发 MCP 客户端
 
-首先，我们先来看看如何在服务端如何调用我们刚才开发的 MCP 服务器中的工具。
+首先，我们先来看看如何在客户端如何调用我们刚才开发的 MCP 服务器中的工具。
 
 ```python
 import asyncio
