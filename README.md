@@ -57,7 +57,7 @@ app = FastMCP('web-search')
 
 实现执行的方法非常简单，MCP 为我们提供了一个 `@mcp.tool()` 我们只需要将实现函数用这个装饰器装饰即可。函数名称将作为工具名称，参数将作为工具参数，并通过注释来描述工具与参数，以及返回值。
 
-这里我们直接使用智普的接口，它这个接口不仅能帮我们搜索到相关的结果链接，并帮我们生成了对应链接中文章总结后的内容的，并且现阶段是免费的，非常适合我们。
+这里我们直接使用智谱的接口，它这个接口不仅能帮我们搜索到相关的结果链接，并帮我们生成了对应链接中文章总结后的内容的，~~并且现阶段是免费的~~(目前已经开始收费，0.03元/次)，非常适合我们。
 
 >官方文档：https://bigmodel.cn/dev/api/search-tool/web-search-pro
 >
@@ -792,5 +792,188 @@ mcp dev image_server.py
 
 ![image-20250301234532249](.assets/image-20250301234532249.png)
 
-至此，整个 MCP 入门教程就到这里啦。相关代码会放到 github 仓库中：https://github.com/liaokongVFX/MCP-Chinese-Getting-Started-Guide
+
+
+## 通过 serverless 将 MCP 服务部署到云端调用
+
+上面我们讲的都是如何使用本地的 mpc 服务，但是有时我们希望直接把 mcp 服务部署到云端来直接调用，就省去了本地下载启动的烦恼了。此时，我们就需要来使用 MCP 的 SSE 的协议来实现了。
+
+此时，我们先来写 SSE 协议的 MCP 服务。实现起来很简单，只需要将我们最后的 `run` 命令中的 `transport` 参数设置为 `sse` 即可。下面还是以上面的网络搜索为例子，来实现一下 ，具体代码如下：
+
+```python
+# sse_web_search.py
+import httpx
+
+from mcp.server import FastMCP
+
+
+app = FastMCP('web-search', port=9000)
+
+
+@app.tool()
+async def web_search(query: str) -> str:
+    """
+    搜索互联网内容
+
+    Args:
+        query: 要搜索内容
+
+    Returns:
+        搜索结果的总结
+    """
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            'https://open.bigmodel.cn/api/paas/v4/tools',
+            headers={
+                'Authorization': 'YOUR API KEY'},
+            json={
+                'tool': 'web-search-pro',
+                'messages': [
+                    {'role': 'user', 'content': query}
+                ],
+                'stream': False
+            }
+        )
+
+        res_data = []
+        for choice in response.json()['choices']:
+            for message in choice['message']['tool_calls']:
+                search_results = message.get('search_result')
+                if not search_results:
+                    continue
+                for result in search_results:
+                    res_data.append(result['content'])
+
+        return '\n\n\n'.join(res_data)
+
+
+if __name__ == "__main__":
+    app.run(transport='sse')
+
+```
+
+在 `FastMCP` 中，有几个可以设置 SSE 协议相关的参数：
+
+- host: 服务地址，默认为 `0.0.0.0`
+- port: 服务端口，默认为 8000。上述代码中，我设置为 `9000`
+- sse_path：sse 的路由，默认为 `/sse`
+
+此时，我们就可以直接写一个客户端的代码来进行测试了。具体代码如下：
+
+```python
+import asyncio
+from mcp.client.sse import sse_client
+from mcp import ClientSession
+
+
+async def main():
+    async with sse_client('http://localhost:9000/sse') as streams:
+        async with ClientSession(*streams) as session:
+            await session.initialize()
+
+            res = await session.call_tool('web_search', {'query': '杭州今天天气'})
+            print(res)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+
+```
+
+我们可以看到，他正常工作了，并搜索到了内容：
+
+![image-20250406152518223](.assets/image-20250406152518223.png)
+
+当然，我们也可以使用 `mcp dev sse_web_search.py` 的方式来测试。这里要注意的是，`Transport Type` 需要改成 `SSE`，然后下面填写我们的本地服务地址。
+
+![image-20250406153106098](.assets/image-20250406153106098.png)
+
+当一切都测试没有问题后，我们就来将他通过 severless 的方式来部署到云端。这里我们选择的是阿里云的函数计算服务。首先我们先进入到阿里云的 `函数计算 FC 3.0` 的 `函数` 菜单，并点击 `创建函数` 来创建我们的服务。地址是：https://fcnext.console.aliyun.com/cn-hangzhou/functions
+
+![image-20250406153655185](.assets/image-20250406153655185.png)
+
+我们这里选择 `Web函数` ，运行环境我们选择 `Python 10`。代码上传方式这里可以根据大家需求来，因为我这里就一个 python 文件，所以我这里就直接选择`使用示例代码`了，这样我后面直接把我的代码覆盖进去了就行了。启动命令和监听端口我这里都保留为默认(**端口需要和代码中一致**)。
+
+环境变量大家可以将代码中用到的 apikey 可以设置为一个环境变量，这里我就不设置了。最后设置完成截图如下：
+
+![image-20250406154115438](.assets/image-20250406154115438.png)
+
+在高级设置中，为了方便调试，我启动了日志功能。
+
+![image-20250406154228341](.assets/image-20250406154228341.png)
+
+设置完成后，点创建即可。他就跳转到代码编辑部分，然后我们把之前的代码复制进去即可。
+
+![image-20250406154441634](.assets/image-20250406154441634.png)
+
+完成后，我们来安装下依赖。我们点击右上角的`编辑层`。这里默认会有个默认的 flask 的层，因为开始的模板用的是 flask，这里我们就需要了。我们删除他，再添加一个 mcp 的层。选择`添加官方公共层`，然后搜索 `mcp` 就能看到了一个 python 版的 mcp 层，里面包含了 cmp 所有用到的依赖。
+
+![image-20250406154753623](.assets/image-20250406154753623.png)
+
+如果你还有其他第三方的，可以先搜索下看看公共层中是否有，没有就可以自行构建一个自定义的层。点击这里就可以，只需要提供一个 `requirements` 列表就可以了，这里就不赘述了。 
+
+![image-20250406154935751](.assets/image-20250406154935751.png)
+
+当我们都设置完成后，点击右下角的部署即可。
+
+然后我们又回到了我们代码编辑的页面，此时，我们再点击左上角的部署代码。稍等一两秒就会提示代码部署成功。此时，我们的 MCP 服务就被部署到了云端。
+
+![image-20250406155135563](.assets/image-20250406155135563.png)
+
+然后，我们切换到`配置`的`触发器`中，就可以看到我们用来访问的 URL 地址了。当然，你也可以绑定自己的域名。
+
+![image-20250406155353662](.assets/image-20250406155353662.png)
+
+然后，我们就可以用我们上面的客户端代码进行测试了。
+
+```python
+import asyncio
+from mcp.client.sse import sse_client
+from mcp import ClientSession
+
+
+async def main():
+    async with sse_client('https://mcp-test-whhergsbso.cn-hangzhou.fcapp.run/sse') as streams:
+        async with ClientSession(*streams) as session:
+            await session.initialize()
+
+            res = await session.call_tool('web_search', {'query': '杭州今天天气'})
+            print(res)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+```
+
+如果我们发现在客户端有报也不用慌，我们可以直接在日志中找到对应出错的请求点击`请求日志`查看报错来修复。
+
+![image-20250406155803071](.assets/image-20250406155803071.png)
+
+到这里，我们的 MCP 服务就被部署到了云端，我们就可以在任何地方直接来使用它了。
+
+比如，在 `Cherry-Studio` 中，我们可以这样来设置：
+
+![image-20250406160152782](.assets/image-20250406160152782.png)
+
+在 `Cline` 中：
+
+![image-20250406160709759](.assets/image-20250406160709759.png)
+
+在 `Cursor` 中：
+
+![image-20250406161055717](.assets/image-20250406161055717.png)
+
+```json
+{
+  "mcpServers": {
+    "web-search": {
+      "url": "https://mcp-test-whhergsbso.cn-hangzhou.fcapp.run/sse"
+    }
+  }
+}
+```
+
+
+
+至此，整个 MCP 入门教程就到这里啦，后续有其他的再进行更新。相关代码会放到 github 仓库中：https://github.com/liaokongVFX/MCP-Chinese-Getting-Started-Guide
 
