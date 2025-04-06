@@ -142,7 +142,7 @@ mcp dev PYTHONFILE
 mcp dev web_search.py
 ```
 
-当出现如下提示则代表运行成功。
+当出现如下提示则代表运行成功。如果提示连接出错，可能是端口被占用，可以看这个 issue 的解决方法：https://github.com/liaokongVFX/MCP-Chinese-Getting-Started-Guide/issues/6
 
 ![image-20250223223638135](.assets/image-20250223223638135.png)
 
