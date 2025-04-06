@@ -649,6 +649,106 @@ if __name__ == '__main__':
 
 
 
+### 生命周期
+
+MCP 生命周期分为3个阶段：
+
+- 初始化
+- 交互通信中
+- 服务被关闭
+
+因此，我们可以在这个三个阶段的开始和结束来做一些事情，比如创建数据库连接和关闭数据库连接、记录日志、记录工具使用信息等。
+
+下面我们将以网页搜索工具，把工具调用时的查询和查询到的结果存储到一个全局上下文中作为缓存为例，来看看生命周期如何使用。完整代码如下：
+
+```python
+import httpx
+from dataclasses import dataclass
+from contextlib import asynccontextmanager
+
+from mcp.server import FastMCP
+from mcp.server.fastmcp import Context
+
+
+@dataclass
+# 初始化一个生命周期上下文对象
+class AppContext:
+    # 里面有一个字段用于存储请求历史
+    histories: dict
+
+
+@asynccontextmanager
+async def app_lifespan(server):
+    # 在 MCP 初始化时执行
+    histories = {}
+    try:
+        # 每次通信会把这个上下文通过参数传入工具
+        yield AppContext(histories=histories)
+    finally:
+        # 当 MCP 服务关闭时执行
+        print(histories)
+
+
+app = FastMCP(
+    'web-search', 
+    # 设置生命周期监听函数
+    lifespan=app_lifespan
+)
+
+
+@app.tool()
+# 第一个参数会被传入上下文对象
+async def web_search(ctx: Context, query: str) -> str:
+    """
+    搜索互联网内容
+
+    Args:
+        query: 要搜索内容
+
+    Returns:
+        搜索结果的总结
+    """
+    # 如果之前问过同样的问题，就直接返回缓存
+    histories = ctx.request_context.lifespan_context.histories
+    if query in histories：
+    	return histories[query]
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            'https://open.bigmodel.cn/api/paas/v4/tools',
+            headers={'Authorization': 'YOUR API KEY'},
+            json={
+                'tool': 'web-search-pro',
+                'messages': [
+                    {'role': 'user', 'content': query}
+                ],
+                'stream': False
+            }
+        )
+
+        res_data = []
+        for choice in response.json()['choices']:
+            for message in choice['message']['tool_calls']:
+                search_results = message.get('search_result')
+                if not search_results:
+                    continue
+                for result in search_results:
+                    res_data.append(result['content'])
+
+        return_data = '\n\n\n'.join(res_data)
+
+        # 将查询值和返回值存入到 histories 中
+        ctx.request_context.lifespan_context.histories[query] = return_data
+        return return_data
+
+
+if __name__ == "__main__":
+    app.run(transport='sse')
+
+```
+
+
+
 ## 在 LangChain 中使用 MCP 服务器
 
 最近 LangChain 发布了一个新的开源项目 `langchain-mcp-adapters`，可以很方便的将 MCP 服务器集成到 LangChain 中。下面我们来看看如何使用它:
@@ -824,8 +924,7 @@ async def web_search(query: str) -> str:
     async with httpx.AsyncClient() as client:
         response = await client.post(
             'https://open.bigmodel.cn/api/paas/v4/tools',
-            headers={
-                'Authorization': 'YOUR API KEY'},
+            headers={'Authorization': 'YOUR API KEY'},
             json={
                 'tool': 'web-search-pro',
                 'messages': [
