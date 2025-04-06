@@ -743,7 +743,7 @@ async def web_search(ctx: Context, query: str) -> str:
 
 
 if __name__ == "__main__":
-    app.run(transport='sse')
+    app.run()
 
 ```
 
