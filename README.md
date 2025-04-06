@@ -794,7 +794,7 @@ mcp dev image_server.py
 
 
 
-## 通过 serverless 将 MCP 服务部署到云端调用
+## 借助 serverless 将 MCP 服务部署到云端
 
 上面我们讲的都是如何使用本地的 MCP 服务，但是有时我们希望直接把 MCP 服务部署到云端来直接调用，就省去了本地下载启动的烦恼了。此时，我们就需要来使用 MCP 的 SSE 的协议来实现了。
 
