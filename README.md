@@ -499,7 +499,7 @@ if __name__ == '__main__':
 
 ## Claude Desktop 加载 MCP Server
 
-因为后面的两个功能实际上都是为了提高给 Claude 桌面端用的，所以这里先说下如何加载我们自定义的 MCP Server 到 Claude 桌面端。
+因为后面的两个功能实际上都是为了提供给 Claude 桌面端用的，所以这里先说下如何加载我们自定义的 MCP Server 到 Claude 桌面端。
 
 首先，我们先打开配置。
 
