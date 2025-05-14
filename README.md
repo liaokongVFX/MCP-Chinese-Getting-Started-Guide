@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/liaokongvfx-mcp-chinese-getting-started-guide-badge.png)](https://mseep.ai/app/liaokongvfx-mcp-chinese-getting-started-guide)
+
 # Model Context Protocol(MCP) 编程极速入门
 
 
