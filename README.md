@@ -1082,5 +1082,36 @@ if __name__ == '__main__':
 
 
 
+## 推荐的 MCP 服务器
+
+除了本教程中介绍的网络搜索和图片生成服务器外，这里推荐一些优秀的开源 MCP 服务器供大家参考使用：
+
+### Roundtable - 统一AI编程助手管理平台
+
+**Roundtable** 是一个零配置的 MCP 服务器，能够统一管理多个 AI 编程助手，提供无缝的开发工作流体验。
+
+**主要特性：**
+- 🔧 **零配置设置** - 自动发现和管理 AI 开发工具
+- 🤝 **统一多个 AI 助手** - 包括 Claude Code、Cursor、GPT-4 等
+- 🎯 **智能客户端管理** - 通过标准化接口实现无缝协调
+- ⚡ **增强开发工作流** - 提供可靠的工具集成和管理
+- 🆓 **开源免费** - 完全开源且生产就绪
+
+**快速开始：**
+```bash
+# 安装
+pip install roundtable-ai
+
+# 使用
+roundtable
+```
+
+**仓库地址：** https://github.com/askbudi/roundtable
+**官方网站：** https://askbudi.ai/roundtable
+
+**适用场景：** 当你需要在开发过程中使用多个 AI 编程助手时，Roundtable 能够帮你统一管理，避免在不同工具间切换的复杂性，确保开发工作流的连续性和可靠性。
+
+---
+
 至此，整个 MCP 入门教程就到这里啦，后续有其他的再进行更新。相关代码会放到 github 仓库中：https://github.com/liaokongVFX/MCP-Chinese-Getting-Started-Guide
 
