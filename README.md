@@ -21,7 +21,7 @@ MCP 有以下几个核心功能：
 
 因为大部分功能其实都是服务于 Claude 客户端的，本文更希望编写的 MCP 服务器服务与通用大语言模型，所以本文将会主要以“工具”为重点，其他功能会放到最后进行简单讲解。
 
-其中 MCP 的传输层支持了 2 种协议的实现：stdio（标准输入/输出）和 SSE（服务器发送事件），因为 stdio 更为常用，所以本文会以 stdio 为例进行讲解。
+MCP 的传输层包括 stdio（标准输入/输出）和 Streamable HTTP，旧版 HTTP+SSE 传输也仍见于一些示例。本文先以 stdio 为例，后面介绍 SSE 部署，并在文末补充 Streamable HTTP 远程客户端的用法。
 
 本文将会使用 3.11 的 Python 版本，并使用 uv 来管理 Python 项目。同时代码将会在文末放到 Github 上，废话不多说，我们这就开始吧~
 
@@ -1079,6 +1079,79 @@ if __name__ == '__main__':
   }
 }
 ```
+
+
+
+## 连接远程搜索服务：Streamable HTTP
+
+前面演示了如何编写和部署自己的 MCP 服务。如果只想体验远程工具调用，也可以直接连接已有的服务。下面使用 [Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp) 演示网页搜索和正文提取，不需要启动本地 MCP 服务器，也不需要 Parallel 账号或 API Key。匿名免费请求的搜索使用 Fast 模式，有调用额度限制。
+
+这里使用 **Streamable HTTP**，不要把地址追加为 `/sse`，也不要用前面的 `sse_client` 连接。为了与前面示例的依赖分开，我们新建一个 Python 3.11 项目，并使用 MCP Python SDK 1.x：
+
+```shell
+uv init --python 3.11 parallel_mcp_demo
+cd parallel_mcp_demo
+uv add "mcp>=1.26,<2" httpx
+```
+
+创建 `parallel_client.py`：
+
+```python
+import asyncio
+from uuid import uuid4
+
+import httpx
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
+
+
+def show_result(result):
+    for content in result.content:
+        if content.type == 'text':
+            print(content.text)
+    # 工具错误也是 MCP 响应，不能只凭请求完成就判断调用成功
+    if result.isError:
+        raise RuntimeError('工具调用失败，请查看上面的错误信息。')
+
+
+async def main():
+    # 同一次运行的搜索和提取复用这个标识
+    session_id = uuid4().hex
+    async with httpx.AsyncClient(
+        headers={'User-Agent': 'MCP-Chinese-Getting-Started-Guide/parallel-demo'},
+        timeout=60.0,
+    ) as http_client:
+        async with streamable_http_client(
+            'https://search.parallel.ai/mcp', http_client=http_client
+        ) as (read, write, _):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                tools = await session.list_tools()
+                print('可用工具：', [tool.name for tool in tools.tools])
+
+                search = await session.call_tool('web_search', {
+                    'objective': '查找 MCP Streamable HTTP 传输的官方说明',
+                    'search_queries': ['MCP Streamable HTTP transport specification'],
+                    'session_id': session_id,
+                })
+                show_result(search)
+
+                # 也可以将 urls 换成搜索结果中想继续阅读的网页地址
+                page = await session.call_tool('web_fetch', {
+                    'urls': ['https://modelcontextprotocol.io/docs/learn/architecture'],
+                    'objective': '提取 MCP 客户端与服务器的架构说明',
+                    'session_id': session_id,
+                })
+                show_result(page)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+```
+
+运行 `uv run parallel_client.py`，可以看到 `web_search`、`web_fetch` 工具以及返回的文本内容。这个例子直接调用 MCP 工具，不需要配置大模型或 OpenAI API Key；后续可以把工具列表接入自己的模型调用流程。
+
+如果返回额度限制或工具错误，程序会打印错误内容并停止，不能将其当作搜索成功；网络不可达或超时也会抛出异常。免费服务适合体验和轻量使用，更多用法及额度说明见 [Parallel Search MCP 文档](https://docs.parallel.ai/integrations/mcp/search-mcp)。
 
 
 
