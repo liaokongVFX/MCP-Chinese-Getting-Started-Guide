@@ -1084,3 +1084,7 @@ if __name__ == '__main__':
 
 至此，整个 MCP 入门教程就到这里啦，后续有其他的再进行更新。相关代码会放到 github 仓库中：https://github.com/liaokongVFX/MCP-Chinese-Getting-Started-Guide
 
+## 安全：装完之后如何持续校验（RugSnare）
+
+教程里的服务器装好之后，它的工具合约（name / description / inputSchema）仍可能随版本更新悄悄变化。[RugSnare](https://github.com/Paraphern/rugsnare)（开源，Apache-2.0，零 npm 依赖）把每个服务器的工具合约逐工具 SHA-256 钉入仓库提交，升级时 `npx rugsnare diff` 重新校验实际表面并按性质分级（破坏性 / 放宽 / 扩展 / 注解翻转 / 文案），CI 中 exit 1 即失败。中文实测教程可参考社区笔记：[小灰灰的笔记](https://www.tinyash.com/blog/rugsnare-mcp-contract-drift-workflow/)。
+
